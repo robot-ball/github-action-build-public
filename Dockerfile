@@ -60,7 +60,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # 从源码编译 BehaviorTree.CPP 3.8（版本较新，apt 仓库可能没有）
-RUN source /opt/ros/${ROS_DISTRO}/setup.bash && \
+# 注意：git 需要在同一 RUN 层中安装，确保可用
+RUN apt-get update && apt-get install -y --no-install-recommends git && \
+    source /opt/ros/${ROS_DISTRO}/setup.bash && \
     cd /tmp && \
     git clone --depth 1 -b 3.8 https://github.com/BehaviorTree/BehaviorTree.CPP.git && \
     cd BehaviorTree.CPP && \
@@ -70,7 +72,9 @@ RUN source /opt/ros/${ROS_DISTRO}/setup.bash && \
              -DBUILD_TOOLS=OFF && \
     make -j$(nproc) && \
     make install && \
-    rm -rf /tmp/BehaviorTree.CPP
+    rm -rf /tmp/BehaviorTree.CPP && \
+    apt-get purge -y git && apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
 
 # 安装可能需要的额外 ROS2 包（容错）
 RUN source /opt/ros/${ROS_DISTRO}/setup.bash && \
